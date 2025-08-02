@@ -21,26 +21,24 @@ commands = {
     "Intake Air Temperature": obd.commands.INTAKE_TEMP,
 }
 
-timestamp =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-with open("obd_data.csv", "a") as f:
-    f.write(f"Timestamp: {timestamp}\n")
+with open("obd_data.csv", "a") as obd_file, open("dtc_codes.csv", "a") as dtc_file:
+
+    # Write sensor data
+    obd_file.write(f"Timestamp: {timestamp}\n")
     for name, cmd in commands.items():
         response = connection.query(cmd)
         if response.is_null():
             print(f"{name}: Not supported")
-            f.write(f"{timestamp},{name},\n")
+            obd_file.write(f"{timestamp},{name},\n")
         else:
             print(f"{name}: {response.value}")
-            f.write(f"{timestamp},{name},{response.value}\n")
+            obd_file.write(f"{timestamp},{name},{response.value}\n")
 
-
-# ----- DTC scanning ----- #
-
-dtc_response = connection.query(obd.commands.GET_DTC)
-
-with open("dtc_codes.csv", "a") as dtc_file:
+    # Write DTC codes
     dtc_file.write(f"Timestamp: {timestamp}\n")
+    dtc_response = connection.query(obd.commands.GET_DTC)
     if dtc_response.value and len(dtc_response.value) > 0:
         print("❗ Trouble codes found:\n")
         for code, desc in dtc_response.value:
@@ -50,6 +48,7 @@ with open("dtc_codes.csv", "a") as dtc_file:
     else:
         print("✅ No trouble codes found.")
         dtc_file.write(f"{timestamp},No trouble codes found\n")
+
 
 connection.close()
 print("🔌 Connection closed.")
