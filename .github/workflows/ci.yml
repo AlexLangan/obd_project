@@ -36,3 +36,17 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t obd-project .
+
+      # Log in to AWS ECR
+      - name: Log in to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Tag Docker image for ECR
+      - name: Tag Docker image
+        run: |
+          docker tag obd-project:latest ${{ secrets.ECR_REPOSITORY }}:latest
+
+      # Push Docker image to ECR
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.ECR_REPOSITORY }}:latest
