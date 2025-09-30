@@ -21,6 +21,12 @@ jobs:
         with:
           python-version: '3.11'
 
+      # List files in runner
+      - name: List repo files
+        run: |
+          pwd
+          ls -la
+
       # Install dependencies
       - name: Install dependencies
         run: |
