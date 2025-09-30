@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 from dotenv import load_dotenv
 import os
 import obd
@@ -97,6 +98,6 @@ if __name__ == "__main__":
     sensor_headers = ["Timestamp"] + list(COMMANDS.keys())
     init_csv(OBD_FILE, sensor_headers)
     init_csv(DTC_FILE, ["Timestamp", "Code", "Description"])
-    
+
     # Start logging
-    main(interval=2)
+    main(interval=2)  # Log every 60 seconds instead of 2 for practical use. 
