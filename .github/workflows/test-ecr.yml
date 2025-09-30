@@ -1,0 +1,16 @@
+name: Test AWS ECR Login
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ecr-login-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Log in to AWS ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          region: ${{ secrets.AWS_REGION }}
