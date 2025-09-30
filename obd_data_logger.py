@@ -28,6 +28,10 @@ COMMANDS = {
 OBD_FILE = "data/obd_data.csv"
 DTC_FILE = "data/dtc_codes.csv"
 
+# --- Ensure directories exist ---
+os.makedirs(os.path.dirname(OBD_FILE), exist_ok=True)
+os.makedirs(os.path.dirname(DTC_FILE), exist_ok=True)
+
 # --- Logging setup ---
 logging.basicConfig(
     level=logging.INFO,
