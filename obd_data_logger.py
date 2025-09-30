@@ -7,6 +7,7 @@ import datetime
 import csv
 import sys
 import time
+import logging
 
 # --- Load environment variables ---
 load_dotenv()
@@ -23,9 +24,15 @@ COMMANDS = {
     "Intake Air Temperature": obd.commands.INTAKE_TEMP,
 }
 
-# --- CSV Files ---
-OBD_FILE = "obd_data.csv"
-DTC_FILE = "dtc_codes.csv"
+# --- CSV Files (Docker-friendly / persistent) ---
+OBD_FILE = "data/obd_data.csv"
+DTC_FILE = "data/dtc_codes.csv"
+
+# --- Logging setup ---
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
 
 
 def init_csv(file_path, headers):
@@ -44,10 +51,10 @@ def log_sensors(connection):
     for name, cmd in COMMANDS.items():
         response = connection.query(cmd)
         if response.is_null():
-            print(f"{name}: Not supported")
+            logging.warning(f"{name}: Not supported")
             row.append("")
         else:
-            print(f"{name}: {response.value}")
+            logging.info(f"{name}: {response.value}")
             row.append(str(response.value))
 
     with open(OBD_FILE, "a", newline="") as f:
@@ -59,38 +66,44 @@ def log_dtcs(connection):
     """Query DTC codes and write to CSV."""
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     dtc_response = connection.query(obd.commands.GET_DTC)
-    
+
     with open(DTC_FILE, "a", newline="") as f:
         writer = csv.writer(f)
         if dtc_response.value and len(dtc_response.value) > 0:
-            print("❗ Trouble codes found:")
+            logging.warning("❗ Trouble codes found:")
             for code, desc in dtc_response.value:
-                print(f" - {code}: {desc}")
+                logging.warning(f" - {code}: {desc}")
                 writer.writerow([timestamp, code, desc])
         else:
-            print("✅ No trouble codes found.")
+            logging.info("✅ No trouble codes found.")
             writer.writerow([timestamp, "None", "No trouble codes"])
 
 
-def main(interval=2):
-    """Main loop for live logging."""
-    connection = obd.OBD(OBD_PORT)
-    if not connection.is_connected():
-        print("❌ Failed to connect to OBD-II adapter. Exiting.")
+def main(interval=60):
+    """Main loop for live logging with connection retries."""
+    connection = None
+    for attempt in range(5):  # Retry up to 5 times
+        connection = obd.OBD(OBD_PORT)
+        if connection.is_connected():
+            logging.info(f"✅ Connected to OBD-II adapter on {OBD_PORT}")
+            break
+        logging.info("⏳ Waiting for OBD-II adapter...")
+        time.sleep(3)
+    else:
+        logging.error("❌ Could not connect to OBD-II adapter. Exiting.")
         sys.exit(1)
-    print(f"✅ Connected to OBD-II adapter on {OBD_PORT}")
 
     try:
         while True:
             log_sensors(connection)
             log_dtcs(connection)
-            print("-" * 40)
+            logging.info("-" * 40)
             time.sleep(interval)
     except KeyboardInterrupt:
-        print("\n🛑 Logging stopped by user.")
+        logging.info("🛑 Logging stopped by user.")
     finally:
         connection.close()
-        print("🔌 Connection closed.")
+        logging.info("🔌 Connection closed.")
 
 
 if __name__ == "__main__":
@@ -99,5 +112,5 @@ if __name__ == "__main__":
     init_csv(OBD_FILE, sensor_headers)
     init_csv(DTC_FILE, ["Timestamp", "Code", "Description"])
 
-    # Start logging
-    main(interval=2)  # Log every 60 seconds instead of 2 for practical use. 
+    # Start logging every 60 seconds
+    main(interval=60)
