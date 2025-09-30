@@ -12,29 +12,38 @@ A Python-based diagnostic tool for reading and logging live vehicle data through
   - Coolant Temperature
   - Fuel Level
   - Intake Air Temperature
+- **PID Discovery**: Find supported OBD-II PIDs for your vehicle
 - **Diagnostic Trouble Codes**: Automatically reads and logs DTCs
 - **CSV Export**: All data saved with timestamps for analysis
+- **Docker Support**: Containerized deployment option
 - **Graceful Error Handling**: Clean exit when vehicle connection is unavailable
-- **Tested Hardware**: Validated on 2015 Ford Fiesta Diesel
 
 ## Project Structure
 
 ```
 obd_project/
-├── 0bd_test_real.py    # Main data logging script
-├── obd_data.csv        # Live sensor readings output
-├── dtc_codes.csv       # Diagnostic trouble codes output
-├── .gitignore          # Excludes CSV files and virtual environment
-└── README.md           # Project documentation
+├── obd_data_logger.py    # Main data logging script
+├── obd_pid_finder.py     # PID discovery utility
+├── data/                 # Data storage directory
+├── obd_data.csv          # Live sensor readings output
+├── dtc_codes.csv         # Diagnostic trouble codes output
+├── tests/                # Test suite
+├── requirements.txt      # Python dependencies
+├── Dockerfile            # Docker configuration
+├── LICENSE               # License information
+├── .gitignore           # Git ignore rules
+└── README.md            # Project documentation
 ```
 
 ## Requirements
 
-- **Python**: 3.x or higher
+- **Python**: 3.12+ (tested with 3.12.3)
 - **Hardware**: USB ELM327 OBD-II adapter
-- **Library**: [python-OBD](https://github.com/brendan-w/python-OBD)
+- **Dependencies**: Listed in `requirements.txt`
 
 ## Installation
+
+### Standard Installation
 
 1. **Clone the repository**:
    ```bash
@@ -42,7 +51,7 @@ obd_project/
    cd obd_project
    ```
 
-2. **Create a virtual environment** (recommended):
+2. **Create a virtual environment**:
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -50,23 +59,42 @@ obd_project/
 
 3. **Install dependencies**:
    ```bash
-   pip install obd
+   pip install -r requirements.txt
    ```
 
+### Docker Installation
+
+Build and run using Docker:
+```bash
+docker build -t obd-logger .
+docker run --device=/dev/ttyUSB0 -v $(pwd)/data:/app/data obd-logger
+```
+
 ## Usage
+
+### Data Logging
 
 1. **Connect your OBD-II adapter** to your vehicle's diagnostic port and your computer's USB port
 
 2. **Start the engine** (required for data transmission)
 
-3. **Run the script**:
+3. **Run the data logger**:
    ```bash
-   python 0bd_test_real.py
+   python obd_data_logger.py
    ```
 
 4. **View the data**: Check the generated CSV files:
    - `obd_data.csv` - Contains timestamped sensor readings
    - `dtc_codes.csv` - Contains any diagnostic trouble codes
+
+### PID Discovery
+
+To find out which PIDs your vehicle supports:
+```bash
+python obd_pid_finder.py
+```
+
+This will scan your vehicle and display all available OBD-II parameters.
 
 ## Output Format
 
@@ -80,19 +108,43 @@ obd_project/
 |-----------|------|-------------|
 | 2025-09-30 14:23:01 | P0420 | Catalyst System Efficiency Below Threshold |
 
+## Testing
+
+Run the test suite:
+```bash
+pytest tests/
+```
+
 ## Troubleshooting
 
 - **No connection**: Ensure the OBD-II adapter is properly connected and the ignition is on
-- **Permission errors**: On Linux/Mac, you may need to add your user to the `dialout` group or run with `sudo`
-- **Import errors**: Verify python-OBD is installed: `pip list | grep obd`
+- **Permission errors**: On Linux/Mac, you may need to add your user to the `dialout` group:
+  ```bash
+  sudo usermod -a -G dialout $USER
+  ```
+  Then log out and back in for changes to take effect
+- **Import errors**: Verify dependencies are installed: `pip install -r requirements.txt`
+- **USB device not found**: Check the device path (usually `/dev/ttyUSB0` on Linux, `COM3` on Windows)
 
 ## Compatibility
 
 This project uses the ELM327 protocol, which is compatible with most vehicles manufactured after 1996 (OBD-II compliant). However, available parameters may vary by make and model.
 
+Use the `obd_pid_finder.py` utility to discover which parameters your specific vehicle supports.
+
+## Development
+
+### Virtual Environments
+
+The project includes two virtual environment directories (both git-ignored):
+- `venv/` - Standard virtual environment
+- `obd-env/` - Alternative environment setup
+
+Use whichever suits your workflow.
+
 ## License
 
-This project is open source and available for personal and educational use.
+See the [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
@@ -101,4 +153,4 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 ## Acknowledgments
 
 - Built with [python-OBD](https://github.com/brendan-w/python-OBD) by Brendan Whitfield
-- Tested on Ford vehicles but should work with most OBD-II compliant cars
+- Compatible with most OBD-II compliant vehicles
