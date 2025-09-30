@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      # List files in runner
+      # Lst files in runner
       - name: List repo files
         run: |
           pwd
@@ -46,6 +46,8 @@ jobs:
       # Log in to AWS ECR
       - name: Log in to AWS ECR
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          region: ${{ secrets.AWS_REGION }}
 
       # Tag Docker image for ECR
       - name: Tag Docker image
