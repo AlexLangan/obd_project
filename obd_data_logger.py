@@ -79,7 +79,7 @@ def log_dtcs(connection):
                 logging.warning(f" - {code}: {desc}")
                 writer.writerow([timestamp, code, desc])
         else:
-            logging.info("✅ No trouble codes found.")
+            logging.info("No trouble codes found.")
             writer.writerow([timestamp, "None", "No trouble codes"])
 
 
@@ -89,12 +89,12 @@ def main(interval=60):
     for attempt in range(5):  # Retry up to 5 times
         connection = obd.OBD(OBD_PORT)
         if connection.is_connected():
-            logging.info(f"✅ Connected to OBD-II adapter on {OBD_PORT}")
+            logging.info(f"Connected to OBD-II adapter on {OBD_PORT}")
             break
-        logging.info("⏳ Waiting for OBD-II adapter...")
+        logging.info("Waiting for OBD-II adapter...")
         time.sleep(3)
     else:
-        logging.error("❌ Could not connect to OBD-II adapter. Exiting.")
+        logging.error("Could not connect to OBD-II adapter. Exiting.")
         sys.exit(1)
 
     try:
@@ -104,14 +104,13 @@ def main(interval=60):
             logging.info("-" * 40)
             time.sleep(interval)
     except KeyboardInterrupt:
-        logging.info("🛑 Logging stopped by user.")
+        logging.info("Logging stopped by user.")
     finally:
         connection.close()
-        logging.info("🔌 Connection closed.")
+        logging.info("Connection closed.")
 
 
 if __name__ == "__main__":
-    # Initialize CSVs with headers
     sensor_headers = ["Timestamp"] + list(COMMANDS.keys())
     init_csv(OBD_FILE, sensor_headers)
     init_csv(DTC_FILE, ["Timestamp", "Code", "Description"])
