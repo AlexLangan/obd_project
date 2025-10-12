@@ -31,8 +31,8 @@ obd_project/
 ├── requirements.txt      # Python dependencies
 ├── Dockerfile            # Docker configuration
 ├── LICENSE               # License information
-├── .gitignore           # Git ignore rules
-└── README.md            # Project documentation
+├── .gitignore            # Git ignore rules
+└── README.md             # Project documentation
 ```
 
 ## Requirements
