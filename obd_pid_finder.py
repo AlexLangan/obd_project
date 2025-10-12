@@ -15,10 +15,10 @@ def main():
     """
     connection = obd.OBD(OBD_PORT)
     if not connection.is_connected():
-        print("❌ Failed to connect to OBD-II adapter.")
+        print("Failed to connect to OBD-II adapter.")
         return
 
-    print(f"✅ Connected to OBD-II adapter on {OBD_PORT}")
+    print(f"Connected to OBD-II adapter on {OBD_PORT}")
     print("Scanning supported PIDs...")
 
     for cmd_name in dir(obd.commands):
